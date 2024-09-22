@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 
 exports.createUser = async (req, res, next) => {
   try {
+    console.log(process.env.DATABASE_URL)
     const { first_name, last_name, email, phone, password } = req.body;
     if (!first_name || !last_name || !email || !phone || !password) {
       return createError(400, "All fields are required");
@@ -35,6 +36,7 @@ exports.createUser = async (req, res, next) => {
 };
 
 exports.login = async (req, res, next) => {
+ try {
   const { email, password } = req.body;
   if (!email || !password) {
     return createError(400, "All fields are required");
@@ -58,6 +60,9 @@ exports.login = async (req, res, next) => {
     message: "User logged in successfully", user: user.id,
     token
   });
+ } catch (error) {
+  next(error);
+ }
 };
 
 exports.getUserProfile = async (req, res, next) => {

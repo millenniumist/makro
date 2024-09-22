@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,82 +7,82 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int        @id @default(autoincrement())
-  password  String
-  first_name String
-  last_name  String
-  email     String @unique
-  phone     String @unique
-  member_id String?
-  Order     Order[]
-  Address   Address?
-}
-
-model Address {
-  id        Int     @id @default(autoincrement())
-  userId    Int     @unique
-  name      String
-  phone     String
-  email     String
-  address   String
-  sub_district String?
-  district  String
-  provice   String
-  postal    String
-  is_main   Boolean @default(false)
-  User      User    @relation(fields: [userId], references: [id])
-}
-
 model Order {
-  id              Int              @id @default(autoincrement())
-  userId          Int
-  total           Decimal
-  is_paid         Boolean
-  created_at      DateTime         @default(now())
-  updated_at      DateTime         @updatedAt
-  status          OrderStatus
+  id             Int             @id @default(autoincrement())
+  total          Decimal
+  is_paid        Boolean
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  status         OrderStatus
   payment_method PaymentMethod
-  User            User             @relation(fields: [userId], references: [id])
-  Order_Product   Order_Product[]
-}
+  userId         Int
+  Order_Product  Order_Product[]
 
-model Product {
-  id          Int              @id @default(autoincrement())
-  categoryId  Int
-  name        String
-  price       Decimal
-  stock       Int
-  detail      String?
-  length      String?
-  width       String?
-  height      String?
-  weight      String?
-  Order_Product Order_Product[]
-  Category    Category         @relation(fields: [categoryId], references: [id])
-  Product_Image Product_Image[]
+  @@index([userId], map: "Order_userId_fkey")
 }
 
 model Order_Product {
-  id        Int     @id @default(autoincrement())
+  id        Int   @id @default(autoincrement())
+  quantity  Int
   orderId   Int
   productId Int
-  quantity  Int
-  Order     Order   @relation(fields: [orderId], references: [id])
-  Product   Product  @relation(fields: [productId], references: [id])
+  Order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  Product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([orderId], map: "Order_Product_orderId_fkey")
 }
 
 model Product_Image {
-  id        Int     @id @default(autoincrement())
-  productId Int
+  id        Int    @id @default(autoincrement())
   url       String
-  Product   Product  @relation(fields: [productId], references: [id])
+  productId Int 
+
+  @@index([productId], map: "Product_Image_productId_fkey")
 }
 
 model Category {
-  id        Int     @id @default(autoincrement())
-  name      String  @unique
-  Product   Product[]
+  id   Int    @id @default(autoincrement())
+  name String @unique
+}
+
+model Address {
+  id           Int     @id @default(autoincrement())
+  name         String
+  phone        String
+  email        String
+  address      String
+  sub_district String?
+  district     String
+  provice      String
+  postal       String
+  is_main      Boolean @default(false)
+  userId       Int     @unique(map: "Address_userId_key")
+}
+
+model Product {
+  id         Int     @id @default(autoincrement())
+  categoryId Int
+  name       String
+  price      Decimal
+  stock      Int
+  detail     String?
+  length     String?
+  width      String?
+  height     String?
+  weight     String?
+  Order_Product Order_Product[]  
+
+  @@index([categoryId], map: "Product_categoryId_fkey")
+}
+
+model User {
+  id         Int     @id @default(autoincrement())
+  first_name String
+  last_name  String
+  email      String  @unique(map: "User_email_key")
+  phone      String  @unique(map: "User_phone_key")
+  member_id  String?
+  password   String
 }
 
 enum OrderStatus {
